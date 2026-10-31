@@ -18,6 +18,7 @@ sounds_mapping = {
 }
 def draw_landmarks(frame, hand_landmarks):
     h, w, _ = frame.shape
+    # Lines to connect b/w 2 points detected by the AI
     HAND_CONNECTIONS = [(0,1),(1,2),(2,3),(3,4),(0,5),(5,6),(6,7),(7,8),(5,9),(9,10),(10,11),(11,12),(9,13),(13,14),(14,15),(15,16),(13,17),(17,18),(18,19),(19,20),(0,17)]
     # Convert each landmark to pixel coordinates
     points = [(int(lm.x * w), int(lm.y * h)) for lm in hand_landmarks]
@@ -33,20 +34,20 @@ def count(result, frame):
     for i , hand_landmarks in enumerate(result.hand_landmarks):
         label = result.handedness[i][0].category_name
         # print(label, hand_landmarks[4].x, hand_landmarks[1].x)
-        if label == 'Left':
+        if label == 'Left': #For Thumb
             if hand_landmarks[4].x < hand_landmarks[1].x:
                 count+=1
         elif label == 'Right':
             if hand_landmarks[4].x > hand_landmarks[1].x:
                 count+=1
         
-        if hand_landmarks[8].y < hand_landmarks[6].y:
+        if hand_landmarks[8].y < hand_landmarks[6].y: #Index finger
             count+=1
-        if hand_landmarks[12].y < hand_landmarks[10].y:
+        if hand_landmarks[12].y < hand_landmarks[10].y: #Middle Finger
             count+=1
-        if hand_landmarks[16].y < hand_landmarks[14].y:
+        if hand_landmarks[16].y < hand_landmarks[14].y: # Ring Finger
             count+=1
-        if hand_landmarks[20].y < hand_landmarks[18].y:
+        if hand_landmarks[20].y < hand_landmarks[18].y: #Pinky finger
             count+=1
     cv2.putText(frame, f"Count is {count}",(20,50), cv2.FONT_HERSHEY_SIMPLEX,1, (0,0,0), 2,cv2.LINE_AA)
     return count
@@ -61,12 +62,12 @@ options = mp_vision.HandLandmarkerOptions(
     running_mode=mp_vision.RunningMode.VIDEO,
     num_hands=2,                      # two hands -> counts up to 10
 )
-landmarker = mp_vision.HandLandmarker.create_from_options(options)
+landmarker = mp_vision.HandLandmarker.create_from_options(options) #Object creation
 cap = cv2.VideoCapture(0)
 start_time = time.time()
-previouscounts = 0
+previouscounts = 0 
 counts = 0
-lastplay = -2
+lastplay = -2 #initial last play to make the time at start to be 0
 pygame.mixer.init()
 while True:
     success, frame = cap.read()
@@ -84,7 +85,6 @@ while True:
         counts = count(result, frame)
     curtime = time.time()
     if counts in sounds_mapping:
-        if counts != previouscounts:
             if curtime >= 1.5 + lastplay:
                 pygame.mixer.music.load(sounds_mapping[counts])
                 pygame.mixer.music.play()
